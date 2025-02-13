@@ -1,18 +1,10 @@
-// Initialize AOS
-AOS.init({
-  duration: 1000,
-  once: true
-});
-
 // Navbar scroll effect
 window.addEventListener('scroll', () => {
   const navbar = document.querySelector('.navbar');
   if (window.scrollY > 50) {
-    navbar.style.padding = '0.5rem 0';
-    navbar.style.backgroundColor = '#0D463D';
+    navbar.classList.add('scrolled');
   } else {
-    navbar.style.padding = '1rem 0';
-    navbar.style.backgroundColor = 'transparent';
+    navbar.classList.remove('scrolled');
   }
 });
 
@@ -30,24 +22,49 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// Fullscreen image viewer
-const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+// Gallery Modal
+const galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
 const modalImage = document.getElementById('modalImage');
+const modalCounter = document.querySelector('.modal-counter');
+let currentImageIndex = 0;
+const galleryImages = Array.from(document.querySelectorAll('[data-gallery-image]'));
 
-document.querySelectorAll('[data-room-image]').forEach(image => {
+function updateModalImage(index) {
+  currentImageIndex = index;
+  modalImage.src = galleryImages[index].src;
+  modalCounter.textContent = `${index + 1} / ${galleryImages.length}`;
+}
+
+// Add click event to gallery images
+galleryImages.forEach((image, index) => {
   image.addEventListener('click', () => {
-    modalImage.src = image.src;
-    imageModal.show();
+    updateModalImage(index);
+    galleryModal.show();
   });
 });
 
-// Image gallery hover effect
-document.querySelectorAll('.card').forEach(card => {
-  card.addEventListener('mouseenter', () => {
-    card.style.transform = 'translateY(-10px)';
-  });
+// Navigation buttons
+document.querySelector('.modal-nav-button.prev').addEventListener('click', () => {
+  currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+  updateModalImage(currentImageIndex);
+});
+
+document.querySelector('.modal-nav-button.next').addEventListener('click', () => {
+  currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+  updateModalImage(currentImageIndex);
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (!galleryModal._isShown) return;
   
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = 'translateY(0)';
-  });
+  if (e.key === 'ArrowRight') {
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    updateModalImage(currentImageIndex);
+  } else if (e.key === 'ArrowLeft') {
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    updateModalImage(currentImageIndex);
+  } else if (e.key === 'Escape') {
+    galleryModal.hide();
+  }
 });
